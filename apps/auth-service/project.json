@@ -1,7 +1,7 @@
 {
-  "name": "eshop-backend",
+  "name": "auth-service",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/eshop-backend/src",
+  "sourceRoot": "apps/auth-service/src",
   "projectType": "application",
   "tags": [],
   "targets": {
@@ -23,15 +23,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "eshop-backend:build",
+        "buildTarget": "auth-service:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "eshop-backend:build:development"
+          "buildTarget": "auth-service:build:development"
         },
         "production": {
-          "buildTarget": "eshop-backend:build:production"
+          "buildTarget": "auth-service:build:production"
         }
       }
     },

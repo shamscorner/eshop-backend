@@ -1,5 +1,5 @@
 {
-  "name": "@eshop-backend/source",
+  "name": "@auth-service/source",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {},

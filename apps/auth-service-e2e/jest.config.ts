@@ -1,5 +1,5 @@
 export default {
-  displayName: 'eshop-backend-e2e',
+  displayName: 'auth-service-e2e',
   preset: '../../jest.preset.js',
   globalSetup: '<rootDir>/src/support/global-setup.ts',
   globalTeardown: '<rootDir>/src/support/global-teardown.ts',
@@ -14,5 +14,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/eshop-backend-e2e',
+  coverageDirectory: '../../coverage/auth-service-e2e',
 };
