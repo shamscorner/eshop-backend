@@ -178,8 +178,6 @@ export interface DailyUserCount {
   count: number;
 }
 
-export const USER_PACKAGE_NAME = "users";
-
 export interface UsersServiceClient {
   getUser(request: GetUserDto): Observable<GetUserResponseDto>;
 

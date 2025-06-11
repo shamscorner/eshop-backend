@@ -61,5 +61,3 @@ export interface PaginationInfo {
   hasNext: boolean;
   hasPrevious: boolean;
 }
-
-export const COMMON_PACKAGE_NAME = "common";

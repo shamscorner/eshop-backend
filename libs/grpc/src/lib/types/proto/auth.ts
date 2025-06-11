@@ -74,8 +74,6 @@ export interface VerifyTokenResponseDto {
   expiresAt: number;
 }
 
-export const AUTH_PACKAGE_NAME = "auth";
-
 export interface AuthServiceClient {
   login(request: LoginDto): Observable<LoginResponseDto>;
 
