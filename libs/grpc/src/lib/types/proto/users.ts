@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v2.7.3
 //   protoc               v3.20.3
-// source: proto/user.proto
+// source: proto/users.proto
 
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
@@ -178,7 +178,7 @@ export interface DailyUserCount {
   count: number;
 }
 
-export const USER_PACKAGE_NAME = "user";
+export const USER_PACKAGE_NAME = "users";
 
 export interface UsersServiceClient {
   getUser(request: GetUserDto): Observable<GetUserResponseDto>;

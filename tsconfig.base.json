@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@apps/*": ["apps/*"],
-      "@eshop/common": ["libs/common/src/index.ts"]
+      "@eshop/common": ["libs/common/src/index.ts"],
+      "@eshop/grpc": ["libs/grpc/src/index.ts"],
     }
   },
   "exclude": ["node_modules", "tmp"]

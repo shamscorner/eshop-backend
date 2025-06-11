@@ -1,7 +1,12 @@
 {
-  "name": "@auth-service/source",
+  "name": "@eshop/source",
   "version": "0.0.0",
   "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
   "scripts": {
     "build": "nx run-many --target=build --all",
     "build:api-gateway": "nx build api-gateway",
@@ -28,7 +33,6 @@
     "affected:e2e": "nx affected --target=e2e",
     "generate:proto": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/common/src/types/ ./proto/*.proto --ts_proto_opt=nestJs=true"
   },
-  "private": true,
   "dependencies": {
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.7.15",
@@ -44,13 +48,20 @@
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "cookie-parser": "^1.4.7",
     "mongoose": "^8.15.1",
+    "nestjs-pino": "^4.4.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "ts-proto": "^2.7.3"
+    "ts-proto": "^2.7.3",
+    "uuid": "^11.1.0"
+  },
+  "_moduleAliases": {
+    "@eshop/common": "dist/libs/common/main",
+    "@eshop/grpc": "dist/libs/grpc/main"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -69,6 +80,7 @@
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.9",
     "@types/jest": "^29.5.12",
     "@types/node": "~18.16.9",
     "@types/passport-jwt": "^4.0.1",

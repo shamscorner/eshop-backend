@@ -5,8 +5,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthHttpController } from './auth-http.controller';
@@ -34,7 +32,7 @@ import { JwtStrategy } from './jwt.strategy';
       },
     ]),
   ],
-  controllers: [AppController, AuthController, AuthHttpController],
-  providers: [AppService, AuthService, JwtStrategy],
+  controllers: [AuthController, AuthHttpController],
+  providers: [AuthService, JwtStrategy],
 })
 export class AppModule {}
