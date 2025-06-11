@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package common;
+
+message User {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  optional string phone = 5;
+  optional string bio = 6;
+  optional string avatar_url = 7;
+  int64 created_at = 8; // Unix timestamp
+  int64 updated_at = 9; // Unix timestamp
+  int64 last_login_at = 10; // Unix timestamp
+  bool is_verified = 11;
+  bool is_active = 12;
+  UserRole role = 13;
+  UserPreferences preferences = 14;
+}
+
+message UserPreferences {
+  bool email_notifications = 1;
+  bool push_notifications = 2;
+  bool marketing_emails = 3;
+  string language = 4;
+  string timezone = 5;
+  string theme = 6; // light, dark, auto
+}
+
+message PaginationInfo {
+  int32 current_page = 1;
+  int32 total_pages = 2;
+  int32 total_items = 3;
+  int32 items_per_page = 4;
+  bool has_next = 5;
+  bool has_previous = 6;
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_USER = 1;
+  USER_ROLE_ADMIN = 2;
+  USER_ROLE_SUPER_ADMIN = 3;
+}
+
+enum SortOrder {
+  SORT_ORDER_UNSPECIFIED = 0;
+  SORT_ORDER_ASC = 1;
+  SORT_ORDER_DESC = 2;
+}

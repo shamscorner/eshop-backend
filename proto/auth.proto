@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package auth;
+
+import "proto/common.proto";
+
+service AuthService {
+  rpc Login(LoginDto) returns (LoginResponseDto);
+  rpc Register(RegisterDto) returns (RegisterResponseDto);
+  rpc RefreshToken(RefreshTokenDto) returns (RefreshTokenResponseDto);
+  rpc Logout(LogoutDto) returns (LogoutResponseDto);
+  rpc VerifyToken(VerifyTokenDto) returns (VerifyTokenResponseDto);
+}
+
+message LoginDto {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponseDto {
+  bool success = 1;
+  string message = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  common.User user = 5;
+  int64 expires_at = 6; // Unix timestamp
+}
+
+message RegisterDto {
+  string email = 1;
+  string password = 2;
+  string first_name = 3;
+  string last_name = 4;
+}
+
+message RegisterResponseDto {
+  bool success = 1;
+  string message = 2;
+  common.User user = 3;
+}
+
+message RefreshTokenDto {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponseDto {
+  bool success = 1;
+  string message = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  int64 expires_at = 5; // Unix timestamp
+}
+
+message LogoutDto {
+  string user_id = 1;
+  string access_token = 2;
+}
+
+message LogoutResponseDto {
+  bool success = 1;
+  string message = 2;
+}
+
+message VerifyTokenDto {
+  string access_token = 1;
+}
+
+message VerifyTokenResponseDto {
+  bool valid = 1;
+  string user_id = 2;
+  string email = 3;
+  int64 expires_at = 4; // Unix timestamp
+}

@@ -1,0 +1,174 @@
+syntax = "proto3";
+
+package user;
+
+import "proto/common.proto";
+
+service UsersService {
+  rpc GetUser(GetUserDto) returns (GetUserResponseDto);
+  rpc GetUserByEmail(GetUserByEmailDto) returns (GetUserByEmailResponseDto);
+  rpc UpdateUser(UpdateUserDto) returns (UpdateUserResponseDto);
+  rpc DeleteUser(DeleteUserDto) returns (DeleteUserResponseDto);
+  rpc ChangePassword(ChangePasswordDto) returns (ChangePasswordResponseDto);
+  rpc VerifyEmail(VerifyEmailDto) returns (VerifyEmailResponseDto);
+  rpc RequestPasswordReset(RequestPasswordResetDto) returns (RequestPasswordResetResponseDto);
+  rpc ResetPassword(ResetPasswordDto) returns (ResetPasswordResponseDto);
+  rpc GetUsers(GetUsersDto) returns (GetUsersResponseDto);
+  rpc UpdateUserRole(UpdateUserRoleDto) returns (UpdateUserRoleResponseDto);
+  rpc GetUserStats(GetUserStatsDto) returns (GetUserStatsResponseDto);
+}
+
+message GetUserDto {
+  string user_id = 1;
+}
+
+message GetUserResponseDto {
+  bool success = 1;
+  string message = 2;
+  common.User user = 3;
+}
+
+message GetUserByEmailDto {
+  string email = 1;
+}
+
+message GetUserByEmailResponseDto {
+  bool success = 1;
+  string message = 2;
+  common.User user = 3;
+}
+
+message UpdateUserDto {
+  string user_id = 1;
+  optional string first_name = 2;
+  optional string last_name = 3;
+  optional string phone = 4;
+  optional string bio = 5;
+  optional string avatar_url = 6;
+  optional common.UserPreferences preferences = 7;
+}
+
+message UpdateUserResponseDto {
+  bool success = 1;
+  string message = 2;
+  common.User user = 3;
+}
+
+message DeleteUserDto {
+  string user_id = 1;
+  string password = 2; // Confirm with password
+}
+
+message DeleteUserResponseDto {
+  bool success = 1;
+  string message = 2;
+}
+
+message ChangePasswordDto {
+  string user_id = 1;
+  string current_password = 2;
+  string new_password = 3;
+}
+
+message ChangePasswordResponseDto {
+  bool success = 1;
+  string message = 2;
+}
+
+message VerifyEmailDto {
+  string user_id = 1;
+  string verification_token = 2;
+}
+
+message VerifyEmailResponseDto {
+  bool success = 1;
+  string message = 2;
+}
+
+message RequestPasswordResetDto {
+  string email = 1;
+}
+
+message RequestPasswordResetResponseDto {
+  bool success = 1;
+  string message = 2;
+}
+
+message ResetPasswordDto {
+  string email = 1;
+  string reset_token = 2;
+  string new_password = 3;
+}
+
+message ResetPasswordResponseDto {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetUsersDto {
+  int32 page = 1;
+  int32 limit = 2;
+  optional string search = 3; // Search by email, name
+  optional common.UserRole role_filter = 4;
+  optional bool verified_filter = 5;
+  optional UserSortBy sort_by = 6;
+  optional common.SortOrder sort_order = 7;
+}
+
+message GetUsersResponseDto {
+  bool success = 1;
+  string message = 2;
+  repeated common.User users = 3;
+  common.PaginationInfo pagination = 4;
+}
+
+message UpdateUserRoleDto {
+  string user_id = 1;
+  common.UserRole new_role = 2;
+  string admin_user_id = 3; // Admin performing the action
+}
+
+message UpdateUserRoleResponseDto {
+  bool success = 1;
+  string message = 2;
+  common.User user = 3;
+}
+
+message GetUserStatsDto {
+  optional int64 start_date = 1; // Unix timestamp
+  optional int64 end_date = 2;   // Unix timestamp
+}
+
+message GetUserStatsResponseDto {
+  bool success = 1;
+  string message = 2;
+  UserStatistics stats = 3;
+}
+
+// User statistics (specific to user service)
+message UserStatistics {
+  int64 total_users = 1;
+  int64 verified_users = 2;
+  int64 active_users = 3;
+  int64 new_users_this_month = 4;
+  int64 new_users_this_week = 5;
+  map<string, int64> users_by_role = 6;
+  repeated DailyUserCount daily_signups = 7;
+}
+
+// Daily user count for statistics
+message DailyUserCount {
+  string date = 1; // YYYY-MM-DD format
+  int64 count = 2;
+}
+
+// Sort options for user listing (specific to user service)
+enum UserSortBy {
+  USER_SORT_BY_UNSPECIFIED = 0;
+  USER_SORT_BY_CREATED_AT = 1;
+  USER_SORT_BY_UPDATED_AT = 2;
+  USER_SORT_BY_EMAIL = 3;
+  USER_SORT_BY_FIRST_NAME = 4;
+  USER_SORT_BY_LAST_NAME = 5;
+  USER_SORT_BY_LAST_LOGIN = 6;
+}
