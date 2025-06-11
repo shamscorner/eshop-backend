@@ -15,7 +15,7 @@
     "serve": "nx run-many --target=serve --all",
     "serve:api-gateway": "nx serve api-gateway",
     "serve:auth-service": "nx serve auth-service",
-    "dev": "nx run-many --target=serve --all --parallel",
+    "dev": "NODE_OPTIONS='--max-old-space-size=8192' nx run-many --target=serve --all --parallel",
     "test": "nx run-many --target=test --all",
     "test:api-gateway": "nx test api-gateway",
     "test:auth-service": "nx test auth-service",
