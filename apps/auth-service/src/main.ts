@@ -1,3 +1,5 @@
+require('module-alias/register');
+
 import { NestFactory } from '@nestjs/core';
 import { GrpcOptions, Transport } from '@nestjs/microservices';
 import { join } from 'path';
