@@ -17,6 +17,7 @@ message User {
   bool is_active = 12;
   UserRole role = 13;
   UserPreferences preferences = 14;
+  optional string password_hash = 15; // For password storage, use a secure hash
 }
 
 message UserPreferences {

@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import {
   ChangePasswordDto,
@@ -8,6 +8,7 @@ import {
   GetUserDto,
   GetUsersDto,
   GetUserStatsDto,
+  GrpcLoggingInterceptor,
   RequestPasswordResetDto,
   ResetPasswordDto,
   UpdateUserDto,
@@ -19,6 +20,7 @@ import {
 
 @Controller()
 @UsersServiceControllerMethods()
+@UseInterceptors(GrpcLoggingInterceptor)
 export class UsersController implements UsersServiceController {
   constructor(private readonly usersService: UsersService) {}
 

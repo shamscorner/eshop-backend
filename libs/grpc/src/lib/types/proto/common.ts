@@ -41,6 +41,7 @@ export interface User {
   isActive: boolean;
   role: UserRole;
   preferences: UserPreferences | undefined;
+  passwordHash?: string | undefined;
 }
 
 export interface UserPreferences {

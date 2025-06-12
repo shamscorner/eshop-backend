@@ -109,9 +109,41 @@ export class UsersService implements UsersServiceClient {
   }
 
   getUserByEmail(
+    request: GetUserByEmailDto,
+    internal = false
+  ): Observable<GetUserByEmailResponseDto> {
+    const getUserByEmailPromise = async () => {
+      try {
+        const user = await this.userModel.findOne({ email: request.email }).exec();
+        if (!user) {
+          return {
+            success: false,
+            message: 'User not found',
+            user: undefined,
+          };
+        }
+        return {
+          success: true,
+          message: 'User retrieved successfully',
+          user: this.mapToProtoUser(user, internal),
+        };
+      } catch (error) {
+        this.logger.error('Error getting user by email:', error);
+        return {
+          success: false,
+          message: 'Internal server error',
+          user: undefined,
+        };
+      }
+    }
+
+    return from(getUserByEmailPromise());
+  }
+
+  getInternalUserByEmail(
     request: GetUserByEmailDto
   ): Observable<GetUserByEmailResponseDto> {
-    throw new Error('Method not implemented.');
+    return this.getUserByEmail(request, true);
   }
 
   updateUser(request: UpdateUserDto): Observable<UpdateUserResponseDto> {
@@ -499,8 +531,8 @@ export class UsersService implements UsersServiceClient {
   //   }
   // }
 
-  private mapToProtoUser(user: UserDocument): ProtoUser {
-    return {
+  private mapToProtoUser(user: UserDocument, internal = false): ProtoUser {
+    const userData: ProtoUser =  {
       id: user._id.toString(),
       email: user.email,
       firstName: user.firstName,
@@ -516,6 +548,10 @@ export class UsersService implements UsersServiceClient {
       role: this.mapToProtoRole(user.role),
       preferences: user.preferences,
     };
+    if (internal) {
+      userData.passwordHash = user.password;
+    }
+    return userData;
   }
 
   private mapToProtoRole(role: string): UserRole {
