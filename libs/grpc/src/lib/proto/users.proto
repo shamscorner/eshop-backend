@@ -2,9 +2,10 @@ syntax = "proto3";
 
 package users;
 
-import "proto/common.proto";
+import "libs/grpc/src/lib/proto/common.proto";
 
 service UsersService {
+  rpc CreateUser(CreateUserDto) returns (CreateUserResponseDto);
   rpc GetUser(GetUserDto) returns (GetUserResponseDto);
   rpc GetUserByEmail(GetUserByEmailDto) returns (GetUserByEmailResponseDto);
   rpc UpdateUser(UpdateUserDto) returns (UpdateUserResponseDto);
@@ -22,10 +23,28 @@ message GetUserDto {
   string user_id = 1;
 }
 
+message CreateUserDto {
+  string email = 1;
+  string password = 2;
+  string first_name = 3;
+  optional string last_name = 4;
+  optional string phone = 5;
+  optional string bio = 6;
+  optional string avatar_url = 7;
+  optional common.UserRole role = 8;
+  optional common.UserPreferences preferences = 9;
+}
+
+message CreateUserResponseDto {
+  bool success = 1;
+  string message = 2;
+  optional common.User user = 3;
+}
+
 message GetUserResponseDto {
   bool success = 1;
   string message = 2;
-  common.User user = 3;
+  optional common.User user = 3;
 }
 
 message GetUserByEmailDto {
@@ -35,7 +54,7 @@ message GetUserByEmailDto {
 message GetUserByEmailResponseDto {
   bool success = 1;
   string message = 2;
-  common.User user = 3;
+  optional common.User user = 3;
 }
 
 message UpdateUserDto {

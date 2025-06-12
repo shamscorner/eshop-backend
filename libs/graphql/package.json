@@ -1,0 +1,15 @@
+{
+  "name": "@eshop/graphql",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@nestjs/apollo": "^13.1.0",
+    "@nestjs/graphql": "^13.1.0",
+    "graphql": "^16.11.0"
+  },
+  "devDependencies": {}
+}

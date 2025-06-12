@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-import "proto/common.proto";
+import "libs/grpc/src/lib/proto/common.proto";
 
 service AuthService {
   rpc Login(LoginDto) returns (LoginResponseDto);

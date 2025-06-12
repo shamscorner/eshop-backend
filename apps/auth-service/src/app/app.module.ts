@@ -1,38 +1,34 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { join } from 'path';
-
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { AuthHttpController } from './auth-http.controller';
-import { JwtStrategy } from './jwt.strategy';
+import { LoggerModule } from '@eshop/common';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { GqlLoggingPlugin } from '@eshop/graphql';
 
 @Module({
   imports: [
+    LoggerModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'defaultSecretKey',
-      signOptions: { expiresIn: '15m' },
-    }),
-    ClientsModule.register([
-      {
-        name: 'USER_SERVICE',
-        transport: Transport.GRPC,
-        options: {
-          package: 'user',
-          protoPath: join(__dirname, '../../../proto/user.proto'),
-          url: 'localhost:50052',
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      plugins: [new GqlLoggingPlugin()],
+      useGlobalPrefix: true,
+      playground: {
+        settings: {
+          'request.credentials': 'include',
         },
       },
-    ]),
+      context: ({ req, res }) => ({ req, res }),
+      autoSchemaFile: true,
+    }),
+    AuthModule,
+    UsersModule,
   ],
-  controllers: [AuthController, AuthHttpController],
-  providers: [AuthService, JwtStrategy],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
