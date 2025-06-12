@@ -4,7 +4,7 @@ import { UsersResolver } from './users.resolver';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './models/user.model';
-import { GraphqlService } from '@eshop/graphql';
+import { GraphqlService } from '@eshop/mongodb';
 
 @Module({
   imports: [

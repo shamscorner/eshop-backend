@@ -1,53 +1,57 @@
-# Use Node.js 22 Alpine as the base image
-FROM node:22-alpine AS base
+# Builder Stage
+FROM node:22-slim AS builder
 
-# Install pnpm globally
-RUN npm install -g pnpm
+WORKDIR /workspace
 
-# Build stage
-FROM base AS builder
+RUN apt-get update && apt-get install -y openssl
 
-WORKDIR /app
+# Copy necessary files for building the app
+COPY package*.json ./
+COPY nx.json ./
+COPY tsconfig*.json ./
+COPY jest.config.ts ./
+COPY jest.preset.js ./
+COPY .eslintrc.json ./
+COPY webpack.*.config.js ./
 
-# Copy package manager files
-COPY package.json pnpm-lock.yaml ./
+COPY apps/auth-service ./apps/auth-service
+COPY libs/graphql ./libs/graphql
+COPY libs/grpc ./libs/grpc
+COPY libs/nestjs ./libs/nestjs
+COPY libs/mongodb ./libs/mongodb
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm install
 
-# Copy source code and configuration files
-COPY . .
+RUN apt-get update && apt-get install -y protobuf-compiler
 
-# Build the application
-RUN pnpm nx build auth-service --configuration=production
+# Build the app
+RUN npx nx build auth-service
 
-# Production stage
-FROM base AS production
+# Runner Stage
+FROM node:22-slim AS runner
+
+RUN apt-get update && apt-get install -y openssl
 
 WORKDIR /app
 
-# Copy the built application
-COPY --from=builder /app/dist/apps/auth-service ./
+# Copy necessary files
+COPY --from=builder /workspace/package.json ./
+COPY --from=builder /workspace/apps/auth-service/package.json ./apps/auth-service/package.json
+COPY --from=builder /workspace/libs/graphql/package.json ./libs/graphql/package.json
+COPY --from=builder /workspace/libs/grpc/package.json ./libs/grpc/package.json
+COPY --from=builder /workspace/libs/mongodb/package.json ./libs/mongodb/package.json
+COPY --from=builder /workspace/package-lock.json ./
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Set production environment
+ENV NODE_ENV=production
 
-# Create a non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nestjs -u 1001
+# Install production dependencies
+RUN npm ci
 
-# Change ownership of the app directory
-RUN chown -R nestjs:nodejs /app
+# Copy build output and other files
+COPY --from=builder /workspace/node_modules/@prisma-clients/auth/ ./node_modules/@prisma-clients/auth/
+COPY --from=builder /workspace/dist ./dist
 
-# Switch to non-root user
-USER nestjs
-
-# Expose the port
-EXPOSE 50051
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('net').createConnection(50051, 'localhost').on('connect', () => process.exit(0)).on('error', () => process.exit(1))"
-
-# Start the application
-CMD ["node", "main.js"]
+# Run the application
+CMD ["node", "dist/apps/auth/main"]

@@ -37,7 +37,7 @@ import {
   VerifyEmailResponseDto,
 } from '@eshop/grpc';
 import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
-import { GraphqlService } from '@eshop/graphql';
+import { GraphqlService } from '@eshop/mongodb';
 import { User as ProtoUser } from '@eshop/grpc';
 
 @Injectable()

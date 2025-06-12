@@ -18,7 +18,8 @@
       "@apps/*": ["apps/*"],
       "@eshop/common": ["libs/common/src/index.ts"],
       "@eshop/graphql": ["libs/graphql/src/index.ts"],
-      "@eshop/grpc": ["libs/grpc/src/index.ts"]
+      "@eshop/grpc": ["libs/grpc/src/index.ts"],
+      "@eshop/mongodb": ["libs/mongodb/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
