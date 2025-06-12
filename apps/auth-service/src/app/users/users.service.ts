@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './models/user.model';
@@ -31,7 +36,7 @@ import {
   VerifyEmailDto,
   VerifyEmailResponseDto,
 } from '@eshop/grpc';
-import { Observable, from } from 'rxjs';
+import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
 import { GraphqlService } from '@eshop/graphql';
 import { User as ProtoUser } from '@eshop/grpc';
 
@@ -50,38 +55,32 @@ export class UsersService implements UsersServiceClient {
     firstName,
     lastName,
   }: CreateUserDto): Observable<CreateUserResponseDto> {
-    const createUserPromise = async () => {
-      try {
-        // TODO: add salt and other security measures later
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new this.userModel({
-          email,
-          password: hashedPassword,
-          firstName,
-          lastName,
-        });
-        const savedUser = await newUser.save();
-        return {
-          success: true,
-          message: 'User created successfully',
-          user: this.mapToProtoUser(savedUser),
-        };
-      } catch (error) {
+    return from(bcrypt.hash(password, 10)).pipe(
+      switchMap((hashedPassword) =>
+        from(
+          new this.userModel({
+            email,
+            password: hashedPassword,
+            firstName,
+            lastName,
+          }).save()
+        )
+      ),
+      map((savedUser) => ({
+        success: true,
+        message: 'User created successfully',
+        user: this.mapToProtoUser(savedUser),
+      })),
+      catchError((error) => {
         this.logger.error('Error creating user:', error);
-        return {
-          success: false,
-          message: 'Failed to create user',
-          user: undefined
-        };
-      }
-    }
-
-    return from(createUserPromise());
+        return throwError(() => new InternalServerErrorException(error));
+      })
+    );
   }
 
   getUsers(request: GetUsersDto): Observable<GetUsersResponseDto> {
-    const getUsersPromise = async () => {
-      const result = await this.graphqlService.paginate<UserDocument, ProtoUser>(
+    return from(
+      this.graphqlService.paginate<UserDocument, ProtoUser>(
         this.userModel,
         {
           page: request.page,
@@ -89,19 +88,21 @@ export class UsersService implements UsersServiceClient {
           search: request.search,
           searchFields: ['email', 'firstName', 'lastName'],
           sortBy: 'createdAt',
-          sortOrder: 'desc'
+          sortOrder: 'desc',
         },
         (user) => this.mapToProtoUser(user),
         'Users'
-      );
-
-      return {
+      )
+    ).pipe(
+      map((result) => ({
         ...result,
         users: result.data,
-      };
-    }
-
-    return from(getUsersPromise());
+      })),
+      catchError((error) => {
+        this.logger.error('Error getting users:', error);
+        return throwError(() => new InternalServerErrorException(error));
+      })
+    );
   }
 
   getUser(request: GetUserDto): Observable<GetUserResponseDto> {
@@ -112,32 +113,23 @@ export class UsersService implements UsersServiceClient {
     request: GetUserByEmailDto,
     internal = false
   ): Observable<GetUserByEmailResponseDto> {
-    const getUserByEmailPromise = async () => {
-      try {
-        const user = await this.userModel.findOne({ email: request.email }).exec();
+    return from(this.userModel.findOne({ email: request.email }).exec()).pipe(
+      switchMap((user) => {
         if (!user) {
-          return {
-            success: false,
-            message: 'User not found',
-            user: undefined,
-          };
+          this.logger.warn(`User with email ${request.email} not found`);
+          return throwError(() => new NotFoundException('User not found'));
         }
-        return {
+        return from([{
           success: true,
           message: 'User retrieved successfully',
           user: this.mapToProtoUser(user, internal),
-        };
-      } catch (error) {
+        }]);
+      }),
+      catchError((error) => {
         this.logger.error('Error getting user by email:', error);
-        return {
-          success: false,
-          message: 'Internal server error',
-          user: undefined,
-        };
-      }
-    }
-
-    return from(getUserByEmailPromise());
+        return throwError(() => new InternalServerErrorException(error));
+      })
+    );
   }
 
   getInternalUserByEmail(
@@ -532,7 +524,7 @@ export class UsersService implements UsersServiceClient {
   // }
 
   private mapToProtoUser(user: UserDocument, internal = false): ProtoUser {
-    const userData: ProtoUser =  {
+    const userData: ProtoUser = {
       id: user._id.toString(),
       email: user.email,
       firstName: user.firstName,

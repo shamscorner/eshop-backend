@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
   AuthServiceClient,
@@ -15,7 +15,8 @@ import {
 } from '@eshop/grpc';
 import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom, from, Observable } from 'rxjs';
+import { firstValueFrom, from, Observable, of, throwError } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { compare } from 'bcrypt';
 import { TokenPayload } from './interfaces/token-payload.interface';
 import { Response } from 'express';
@@ -31,13 +32,11 @@ export class AuthService implements AuthServiceClient {
   ) {}
 
   login(request: LoginDto): Observable<LoginResponseDto> {
-    const loginUserPromise = async () => {
-      try {
-        this.logger.log(`Login attempt for email: ${request.email}`);
+    this.logger.log(`Login attempt for email: ${request.email}`);
 
-        const user = await this.verifyUser(request.email, request.password);
+    return from(this.verifyUser(request.email, request.password)).pipe(
+      map(user => {
         const expires = new Date();
-
         expires.setMilliseconds(
           expires.getTime() +
             parseInt(this.configService.getOrThrow('JWT_EXPIRATION_MS'))
@@ -52,97 +51,73 @@ export class AuthService implements AuthServiceClient {
         const accessToken = this.jwtService.sign(tokenPayload);
         const refreshToken = ''; // TODO: Generate refresh token if needed later
 
-        // TODO: Update last login later
-        // await this.userService.updateLastLogin(user.id);
-
         return {
           success: true,
           message: 'Login successful',
           accessToken,
           refreshToken,
           user,
-          expiresAt: expires.getTime(), // milliseconds since epoch
+          expiresAt: expires.getTime(),
         };
-      } catch (error) {
+      }),
+      catchError(error => {
         this.logger.error('Login error:', error);
-        return {
-          success: false,
-          message: 'Internal server error',
-          accessToken: '',
-          refreshToken: '',
-          user: undefined,
-          expiresAt: 0,
-        };
-      }
-    }
-    return from(loginUserPromise());
+        return throwError(() => new InternalServerErrorException(error));
+      })
+    );
   }
 
-  async authenticate(request: LoginDto, response: Response) {
-    const loginResponse = await firstValueFrom(this.login(request));
-    if(loginResponse.success) {
-      response.cookie('Authentication', loginResponse.accessToken, {
-        httpOnly: true,
-        secure: !!this.configService.get('SECURE_COOKIE'),
-        expires: new Date(loginResponse.expiresAt),
-      });
-    }
-    return loginResponse;
+  authenticate(request: LoginDto, response: Response): Observable<LoginResponseDto> {
+    return this.login(request).pipe(
+      map(loginResponse => {
+        if (loginResponse.success) {
+          response.cookie('Authentication', loginResponse.accessToken, {
+            httpOnly: true,
+            secure: !!this.configService.get('SECURE_COOKIE'),
+            expires: new Date(loginResponse.expiresAt),
+          });
+        }
+        return loginResponse;
+      })
+    );
   }
 
   register(request: RegisterDto): Observable<RegisterResponseDto> {
-    const createUserPromise = async () => {
-      try {
-        this.logger.log(`Registration attempt for email: ${request.email}`);
+    this.logger.log(`Registration attempt for email: ${request.email}`);
 
-        // Check if user already exists
-        const existingUserResponse = await firstValueFrom(this.usersService.getUserByEmail({
-          email: request.email,
-        }));
-
+    return this.usersService.getUserByEmail({ email: request.email }).pipe(
+      switchMap(existingUserResponse => {
         if (existingUserResponse.success && existingUserResponse.user) {
           this.logger.warn(`User with email ${request.email} already exists.`);
-          return {
-            success: false,
-            message: 'User with this email already exists',
-            user: undefined,
-          };
+          return throwError(() => new ConflictException(`User with email ${request.email} already exists.`));
         }
 
-        // Create new user
-        const newUserResponse = await firstValueFrom(this.usersService.createUser({
+        return this.usersService.createUser({
           email: request.email,
           password: request.password,
           firstName: request.firstName,
           lastName: request.lastName
-        }));
+        }).pipe(
+          switchMap(newUserResponse => {
+            if (!newUserResponse || !newUserResponse.success || !newUserResponse.user) {
+              this.logger.error(`Failed to create user: ${request.email}`);
+              return throwError(() => new InternalServerErrorException('Failed to create user.'));
+            }
 
-        if (!newUserResponse || !newUserResponse.success || !newUserResponse.user) {
-          this.logger.error(`Failed to create user: ${request.email}`);
-          return {
-            success: false,
-            message: 'Failed to create user',
-            user: undefined,
-          };
-        }
-
-        this.logger.log(`User registered successfully: ${request.email}`);
-        return {
-          success: true,
-          message: 'User registered successfully',
-          user: newUserResponse.user,
-        };
-      } catch (error) {
+            this.logger.log(`User registered successfully: ${request.email}`);
+            return from([{
+              success: true,
+              message: 'User registered successfully',
+              user: newUserResponse.user,
+            }]);
+          })
+        );
+      }),
+      catchError(error => {
         this.logger.error('Registration error:', error);
-        return {
-          success: false,
-          message: 'Internal server error',
-          user: undefined,
-        };
-      }
-    }
-
-    return from(createUserPromise());
+        return throwError(() => new InternalServerErrorException('Internal server error'));
+      })
+    );
   }
 
   refreshToken(request: RefreshTokenDto): Observable<RefreshTokenResponseDto> {

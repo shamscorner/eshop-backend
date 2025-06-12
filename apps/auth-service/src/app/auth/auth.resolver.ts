@@ -4,7 +4,7 @@ import { LoginInput } from './dto/login.input';
 import { GqlContext } from '@eshop/graphql';
 import { AuthService } from './auth.service';
 import { RegisterInput } from './dto/register.input';
-import { firstValueFrom } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 @Resolver()
 export class AuthResolver {
@@ -13,7 +13,7 @@ export class AuthResolver {
   ) {}
 
   @Mutation(() => User)
-  async login(
+  login(
     @Args('loginInput') loginInput: LoginInput,
     @Context() context: GqlContext
   ) {
@@ -21,17 +21,22 @@ export class AuthResolver {
   }
 
   @Mutation(() => User)
-  async register(
+  register(
     @Args('registerInput') registerInput: RegisterInput,
     @Context() context: GqlContext
   ) {
-    const registerResponse = await firstValueFrom(this.authService.register(registerInput));
-    if (registerResponse.success) {
-      await this.authService.authenticate({
-        email: registerInput.email,
-        password: registerInput.password,
-      }, context.res);
-    }
-    return registerResponse;
+    return this.authService.register(registerInput).pipe(
+      switchMap(registerResponse => {
+        if (registerResponse.success) {
+          return this.authService.authenticate({
+            email: registerInput.email,
+            password: registerInput.password,
+          }, context.res).pipe(
+            map(() => registerResponse)
+          );
+        }
+        return [registerResponse];
+      })
+    );
   }
 }
