@@ -10,43 +10,12 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: user-service
     volumes:
       - mongodb_data:/data/db
     networks:
       - eshop-network
     healthcheck:
       test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  user-service:
-    build:
-      context: .
-      dockerfile: apps/user-service/Dockerfile
-    container_name: eshop-user-service
-    restart: unless-stopped
-    ports:
-      - '50052:50052'
-    environment:
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/user-service?authSource=admin
-      - JWT_SECRET=dev-secret-key-change-in-production
-      - NODE_ENV=production
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    networks:
-      - eshop-network
-    healthcheck:
-      test:
-        [
-          'CMD',
-          'node',
-          '-e',
-          "require('net').createConnection(50052, 'localhost').on('connect', () => process.exit(0)).on('error', () => process.exit(1))",
-        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -62,11 +31,7 @@ services:
       - '50051:50051'
     environment:
       - JWT_SECRET=dev-secret-key-change-in-production
-      - USER_SERVICE_URL=user-service:50052
       - NODE_ENV=production
-    depends_on:
-      user-service:
-        condition: service_healthy
     networks:
       - eshop-network
     healthcheck:
@@ -93,7 +58,6 @@ services:
     environment:
       - JWT_SECRET=dev-secret-key-change-in-production
       - AUTH_SERVICE_URL=auth-service:50051
-      - USER_SERVICE_URL=user-service:50052
       - NODE_ENV=production
     depends_on:
       auth-service:

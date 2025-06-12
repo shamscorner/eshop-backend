@@ -14,27 +14,9 @@ services:
         reservations:
           memory: 512M
 
-  user-service:
-    environment:
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/user-service?authSource=admin
-      - JWT_SECRET=${JWT_SECRET}
-      - NODE_ENV=production
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-
   auth-service:
     environment:
       - JWT_SECRET=${JWT_SECRET}
-      - USER_SERVICE_URL=user-service:50052
       - NODE_ENV=production
     deploy:
       replicas: 2
@@ -52,7 +34,6 @@ services:
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - AUTH_SERVICE_URL=auth-service:50051
-      - USER_SERVICE_URL=user-service:50052
       - NODE_ENV=production
     deploy:
       replicas: 2

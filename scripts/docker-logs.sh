@@ -2,7 +2,7 @@
 
 # Logs script for Docker containers
 # Usage: ./scripts/docker-logs.sh [service] [environment]
-# Service: mongodb, user-service, auth-service, api-gateway, all (default: all)
+# Service: mongodb, auth-service, api-gateway, all (default: all)
 # Environment: dev, prod (default: dev)
 
 set -e
@@ -27,7 +27,7 @@ case $ENVIRONMENT in
 esac
 
 case $SERVICE in
-  "mongodb"|"user-service"|"auth-service"|"api-gateway")
+  "mongodb"|"auth-service"|"api-gateway")
     docker-compose $COMPOSE_FILES logs -f $SERVICE
     ;;
   "all")
@@ -35,7 +35,7 @@ case $SERVICE in
     ;;
   *)
     echo "❌ Invalid service: $SERVICE"
-    echo "Valid options: mongodb, user-service, auth-service, api-gateway, all"
+    echo "Valid options: mongodb, auth-service, api-gateway, all"
     exit 1
     ;;
 esac

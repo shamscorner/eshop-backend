@@ -14,7 +14,6 @@ This workspace contains a microservices-based e-commerce backend with the follow
 
 - **🚪 API Gateway** (`api-gateway`) - HTTP REST API entry point (Port: 8080)
 - **🔐 Auth Service** (`auth-service`) - Authentication and authorization (Port: 50051)
-- **👤 User Service** (`user-service`) - User management and profiles (Port: 50052)
 - **📚 Common Library** (`@eshop/common`) - Shared types, utilities, and protobuf definitions
 
 ### Technology Stack
@@ -84,13 +83,10 @@ docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 ```bash
 # Start MongoDB (ensure MongoDB is running locally)
-# Connection string: mongodb://admin:password@localhost:27017/user-service?authSource=admin
-
 # Start all services in development mode
 pnpm dev
 
 # Or start services individually
-pnpm serve:user-service
 pnpm serve:auth-service
 pnpm serve:api-gateway
 ```
@@ -106,7 +102,6 @@ pnpm dev
 # Start specific service
 pnpm serve:api-gateway
 pnpm serve:auth-service
-pnpm serve:user-service
 
 # Build all services
 pnpm build
@@ -114,13 +109,11 @@ pnpm build
 # Build specific service
 pnpm build:api-gateway
 pnpm build:auth-service
-pnpm build:user-service
 
 # Run tests
 pnpm test
 pnpm test:api-gateway
 pnpm test:auth-service
-pnpm test:user-service
 
 # Lint code
 pnpm lint
@@ -153,7 +146,6 @@ pnpm generate:proto
 
 # View logs for specific service
 ./scripts/docker-logs.sh api-gateway dev
-./scripts/docker-logs.sh user-service dev
 ```
 
 ### Nx Commands
@@ -245,7 +237,6 @@ pnpm test:watch
 pnpm test:e2e
 
 # Run specific service tests
-pnpm test:user-service
 pnpm test:auth-service
 pnpm test:api-gateway
 
@@ -262,7 +253,6 @@ pnpm test --coverage
 ./scripts/docker-logs.sh all dev
 
 # Specific service
-./scripts/docker-logs.sh user-service dev
 ./scripts/docker-logs.sh mongodb dev
 
 # Follow logs in real-time
@@ -350,7 +340,6 @@ eshop-backend/
 ├── apps/
 │   ├── api-gateway/          # HTTP REST API gateway
 │   ├── auth-service/         # Authentication service
-│   └── user-service/         # User management service
 ├── libs/
 │   └── common/               # Shared libraries and types
 ├── proto/                    # Protocol Buffer definitions

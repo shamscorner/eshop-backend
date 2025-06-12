@@ -8,18 +8,6 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
 
-  user-service:
-    build:
-      target: builder # Use builder stage for development with hot reload
-    volumes:
-      - .:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/user-service?authSource=admin
-      - JWT_SECRET=dev-secret-key-change-in-production
-    command: ['pnpm', 'nx', 'serve', 'user-service']
-
   auth-service:
     build:
       target: builder # Use builder stage for development with hot reload
@@ -29,7 +17,6 @@ services:
     environment:
       - NODE_ENV=development
       - JWT_SECRET=dev-secret-key-change-in-production
-      - USER_SERVICE_URL=user-service:50052
     command: ['pnpm', 'nx', 'serve', 'auth-service']
 
   api-gateway:
@@ -42,7 +29,6 @@ services:
       - NODE_ENV=development
       - JWT_SECRET=dev-secret-key-change-in-production
       - AUTH_SERVICE_URL=auth-service:50051
-      - USER_SERVICE_URL=user-service:50052
     command: ['pnpm', 'nx', 'serve', 'api-gateway']
 # Additional development services
 # Uncomment if you want to add additional development tools
